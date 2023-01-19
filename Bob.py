@@ -1,46 +1,20 @@
 import socketserver
 from hashlib import sha256
-import time
 from model import TPM
 from pwn import *
 import pickle
 
-
-def recv_timeout(the_socket, timeout=2):
-    the_socket.setblocking(0)
-
-    total_data = []
-    data = ''
-
-    begin = time.time()
-    while 1:
-        if total_data and time.time() - begin > timeout:
-            break
-
-        elif time.time() - begin > timeout * 2:
-            break
-
-        try:
-            data = the_socket.recv(8192)
-            if data:
-                total_data.append(data.decode("utf-8"))
-                begin = time.time()
-            else:
-                time.sleep(0.1)
-        except:
-            pass
-
-    return ''.join(total_data)
-
-
 update_rules = ["hebbian", "anti_hebbian", "random_walk"]
 
-k = 20
-n = 5
-l = 6
+hidden_layer = 20
+input_layer = 5
+max_value = 6
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
+    """
+        Function for TCP server for neural network synchronization.
+    """
     def handle(self):
         r = remote.fromsocket(self.request)
         input_data = r.recvline(keepends=False, timeout=2).decode("utf-8")
@@ -52,11 +26,10 @@ class TCPHandler(socketserver.BaseRequestHandler):
             if rule in update_rules:
                 update_rule = update_rules[update_rules.index(rule)]
 
-                Bob = TPM(n, k, l)
+                Bob = TPM(input_layer, hidden_layer, max_value)
                 sync = False
 
                 while not sync:
-
                     input_val = pickle.loads(r.readline(keepends=False, timeout=2))
                     tauB = Bob(input_val)
                     r.sendline(str(tauB).encode())
@@ -71,10 +44,9 @@ class TCPHandler(socketserver.BaseRequestHandler):
 
 
 def start(host="localhost", port=9999):
-    HOST, PORT = host, port
     print("Bob started.")
-    with socketserver.TCPServer((HOST, PORT), TCPHandler) as server:
-        server.serve_forever()
+    with socketserver.TCPServer((host, port), TCPHandler) as bob_server:
+        bob_server.serve_forever()
 
 
 if __name__ == '__main__':

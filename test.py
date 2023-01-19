@@ -1,20 +1,22 @@
 import numpy as np
 import time
 from model import TPM
+import matplotlib.pyplot as mpl
 
 k = 20
 n = 5
-l = 6
+max_value = 6
 
 update_rules = ["hebbian", "anti_hebbian", "random_walk"]
 update_rule = update_rules[0]
 
-Alice = TPM(n, k, l)
-Bob = TPM(n, k, l)
-Eve = TPM(n, k, l)
+Alice = TPM(n, k, max_value)
+Bob = TPM(n, k, max_value)
+Eve = TPM(n, k, max_value)
+
 
 def random():
-    return np.random.randint(-l, l+1, [k, n])
+    return np.random.randint(-max_value, max_value + 1, [k, n])
 
 
 def random_one():
@@ -26,7 +28,7 @@ def random_one():
 
 
 def sync_score(m1, m2):
-    return 1.0 - np.average(1.0 * np.abs(m1.weights - m2.weights) / (2 * l))
+    return 1.0 - np.average(1.0 * np.abs(m1.weights - m2.weights) / (2 * max_value))
 
 
 sync = False
@@ -58,7 +60,7 @@ while not sync:
     eve_score = 100 * sync_score(Alice, Eve)
     eve_sync_history.append(eve_score)
 
-    print(f"\rSynchronizatipn = {int(score)}% / Updates = {nb_updates}")
+    print(f"\rSynchronization = {int(score)}% / Updates = {nb_updates}")
 
     if score == 100:
         sync = True
@@ -77,7 +79,6 @@ if eve_score > 100:
 else:
     print(f"Eve's machine is only {eve_score}% synced with Alice's and Bob's and she did {nb_eve_updates} updates.")
 
-import matplotlib.pyplot as mpl
 
 mpl.plot(sync_history)
 mpl.plot(eve_sync_history)
