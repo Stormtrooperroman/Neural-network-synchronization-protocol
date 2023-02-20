@@ -13,7 +13,7 @@ max_value = 6
 
 class TCPHandler(socketserver.BaseRequestHandler):
     """
-        Function for TCP server for neural network synchronization.
+        Class for TCP server for neural network synchronization.
     """
     def handle(self):
         r = remote.fromsocket(self.request)

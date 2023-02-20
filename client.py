@@ -5,12 +5,14 @@ from pwn import *
 import pickle
 from time import time
 
+
+# Neural network setting
 hidden_layer = 20
 input_layer = 5
 max_value = 6
 
 
-def random():
+def random_input():
     """
     Function for generate input arrays.
     """
@@ -42,21 +44,21 @@ def synchronization(host="localhost", port=9999):
     if data_input.lower() == "ok":
 
         r.sendline(f"{update_rule}".encode())
-        Alice = TPM(input_layer, hidden_layer, max_value)
+        client_tpm = TPM(input_layer, hidden_layer, max_value)
 
         sync = False
         nb_updates = 0
         start_time = time()
 
         while not sync:
-            input_val = random()
-            tauA = Alice(input_val)
+            input_val = random_input()
+            client_output = client_tpm(input_val)
             r.sendline(pickle.dumps(input_val))
-            tauB = float(r.readline(keepends=False, timeout=2).decode("utf-8"))
-            r.sendline(str(tauA).encode())
-            Alice.update(tauB, update_rule)
+            server_output = float(r.readline(keepends=False, timeout=2).decode("utf-8"))
+            r.sendline(str(client_output).encode())
+            client_tpm.update(server_output, update_rule)
             nb_updates += 1
-            alice_hash = sha256(pickle.dumps(Alice.weights)).hexdigest()
+            alice_hash = sha256(pickle.dumps(client_tpm.weights)).hexdigest()
             r.sendline(alice_hash.encode())
             bob_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
 
