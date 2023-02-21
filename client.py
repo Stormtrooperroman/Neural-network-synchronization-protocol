@@ -20,11 +20,13 @@ def random_input():
     return np.random.randint(-max_value, max_value+1, [hidden_layer, input_layer])
 
 
+# All possible update rules
 update_rules = ["hebbian", "anti_hebbian", "random_walk"]
+# Choose update rule
 update_rule = update_rules[0]
 
 
-def synchronization(host="localhost", port=9999):
+def synchronization(host="192.168.2.155", port=9999):
     """
     Function for connect to server and neural network synchronization
 
@@ -58,11 +60,11 @@ def synchronization(host="localhost", port=9999):
             r.sendline(str(client_output).encode())
             client_tpm.update(server_output, update_rule)
             nb_updates += 1
-            alice_hash = sha256(pickle.dumps(client_tpm.weights)).hexdigest()
-            r.sendline(alice_hash.encode())
-            bob_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
+            client_hash = sha256(pickle.dumps(client_tpm.weights)).hexdigest()
+            r.sendline(client_hash.encode())
+            server_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
 
-            if alice_hash == bob_hash:
+            if client_hash == server_hash:
                 sync = True
                 end_time = time()
                 time_taken = end_time - start_time

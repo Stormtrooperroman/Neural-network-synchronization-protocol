@@ -4,11 +4,13 @@ from model import TPM
 from pwn import *
 import pickle
 
-update_rules = ["hebbian", "anti_hebbian", "random_walk"]
-
+# Neural network setting
 hidden_layer = 20
 input_layer = 5
 max_value = 6
+
+# All possible update rules
+update_rules = ["hebbian", "anti_hebbian", "random_walk"]
 
 
 class TCPHandler(socketserver.BaseRequestHandler):
@@ -26,24 +28,24 @@ class TCPHandler(socketserver.BaseRequestHandler):
             if rule in update_rules:
                 update_rule = update_rules[update_rules.index(rule)]
 
-                Bob = TPM(input_layer, hidden_layer, max_value)
+                server_tpm = TPM(input_layer, hidden_layer, max_value)
                 sync = False
 
                 while not sync:
                     input_val = pickle.loads(r.readline(keepends=False, timeout=2))
-                    tauB = Bob(input_val)
-                    r.sendline(str(tauB).encode())
-                    tauA = float(r.readline(keepends=False, timeout=2).decode("utf-8"))
-                    Bob.update(tauA, update_rule)
-                    alice_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
-                    bob_hash = sha256(pickle.dumps(Bob.weights)).hexdigest()
-                    r.sendline(bob_hash.encode())
-                    if alice_hash == bob_hash:
+                    server_output = server_tpm(input_val)
+                    r.sendline(str(server_output).encode())
+                    client_output = float(r.readline(keepends=False, timeout=2).decode("utf-8"))
+                    server_tpm.update(client_output, update_rule)
+                    client_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
+                    server_hash = sha256(pickle.dumps(server_tpm.weights)).hexdigest()
+                    r.sendline(server_hash.encode())
+                    if client_hash == server_hash:
                         sync = True
                         print("Machines have been synchronized.")
 
 
-def start(host="localhost", port=9999):
+def start(host="192.168.2.155", port=9999):
     print("Bob started.")
     with socketserver.TCPServer((host, port), TCPHandler) as bob_server:
         bob_server.serve_forever()
