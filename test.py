@@ -82,4 +82,5 @@ else:
 
 mpl.plot(sync_history)
 mpl.plot(eve_sync_history)
+mpl.legend(["Синхронизация Алисы и Боба", "Синхронизация Алисы и Евы"])
 mpl.show()

@@ -1,11 +1,29 @@
 from scapy.all import *
-import IPython
+
+
+all_data = {}
 
 
 def simple_attack(pkt):
-    print(pkt.sprintf("{Raw:%Raw.load%\n}"))
+    data = pkt.sprintf("{Raw:%Raw.load%}")
+
+    # print(pkt.sprintf("{IP:%IP.src%:%IP.dport% -> %IP.dst%:%IP.sport%\n}{Raw:%Raw.load%\n}"))
+
+    if data and data != "":
+        src = pkt.sprintf("{IP:%IP.src%:%IP.dport%}")
+        dst = pkt.sprintf("{IP:%IP.dst%:%IP.sport%}")
+        data = data[1:-3]
+        # print(data)
+        if data == "start synchronization":
+            all_data[dst] = []
+
+        if data == "finish synchronization":
+            print("HAHAHAH")
+        if src in all_data:
+            all_data[src].append(f"{src} {dst} {data}")
+        elif dst in all_data:
+            all_data[dst].append(f"{src} {dst} {data}")
 
 
-conf.L3socket
 t = sniff(filter="port 9999", iface='\\Device\\NPF_Loopback', prn=simple_attack)
 

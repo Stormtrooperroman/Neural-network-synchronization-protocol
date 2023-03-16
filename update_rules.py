@@ -7,7 +7,7 @@ def theta(t1, t2):
 
 def hebbian(weights, input_val, sigma, tau1, tau2, max_value):
     for (i, j), _ in np.ndenumerate(weights):
-        weights[i, j] = weights[i, j] + input_val[i, j] * tau1 * theta(sigma[i], tau1) * theta(tau1, tau2)
+        weights[i, j] += input_val[i, j] * tau1 * theta(sigma[i], tau1) * theta(tau1, tau2)
         weights[i, j] = np.clip(weights[i, j], -max_value, max_value)
     return weights
 

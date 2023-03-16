@@ -60,17 +60,20 @@ def synchronization(host="192.168.2.155", port=9999):
             r.sendline(str(client_output).encode())
             client_tpm.update(server_output, update_rule)
             nb_updates += 1
-            client_hash = sha256(pickle.dumps(client_tpm.weights)).hexdigest()
-            r.sendline(client_hash.encode())
-            server_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
+            if client_output == server_output:
 
-            if client_hash == server_hash:
-                sync = True
-                end_time = time()
-                time_taken = end_time - start_time
-                print("Machines have been synchronized.")
-                print(f"Updates = {nb_updates}.")
-                print(f"Time taken = {time_taken} seconds.")
+                client_hash = sha256(pickle.dumps(client_tpm.weights)).hexdigest()
+                r.sendline(client_hash.encode())
+                server_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
+
+                if client_hash == server_hash:
+                    r.sendline("finish synchronization".encode())
+                    sync = True
+                    end_time = time()
+                    time_taken = end_time - start_time
+                    print("Machines have been synchronized.")
+                    print(f"Updates = {nb_updates}.")
+                    print(f"Time taken = {time_taken} seconds.")
 
     s.close()
 

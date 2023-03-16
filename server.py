@@ -37,16 +37,28 @@ class TCPHandler(socketserver.BaseRequestHandler):
                     r.sendline(str(server_output).encode())
                     client_output = float(r.readline(keepends=False, timeout=2).decode("utf-8"))
                     server_tpm.update(client_output, update_rule)
-                    client_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
-                    server_hash = sha256(pickle.dumps(server_tpm.weights)).hexdigest()
-                    r.sendline(server_hash.encode())
-                    if client_hash == server_hash:
-                        sync = True
-                        print("Machines have been synchronized.")
+
+                    if server_output == client_output:
+                        client_hash = r.readline(keepends=False, timeout=2).decode("utf-8")
+                        server_hash = sha256(pickle.dumps(server_tpm.weights)).hexdigest()
+                        r.sendline(server_hash.encode())
+                        if client_hash == server_hash:
+                            input_data = r.recvline(keepends=False, timeout=2).decode("utf-8")
+                            sync = True
+                            print("Machines have been synchronized.")
 
 
 def start(host="192.168.2.155", port=9999):
-    print("Bob started.")
+    """
+    Function for starting TCP server
+
+    :param host: sever address
+    :type host: str
+    :param port: port number
+    :type port: int
+    """
+
+    print("Server started.")
     with socketserver.TCPServer((host, port), TCPHandler) as bob_server:
         bob_server.serve_forever()
 
