@@ -26,7 +26,7 @@ update_rules = ["hebbian", "anti_hebbian", "random_walk"]
 update_rule = update_rules[0]
 
 
-def synchronization(host="192.168.2.155", port=9999):
+def synchronization(host="192.168.2.46", port=9999):
     """
     Function for connect to server and neural network synchronization
 

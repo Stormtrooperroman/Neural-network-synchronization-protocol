@@ -48,7 +48,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                             print("Machines have been synchronized.")
 
 
-def start(host="192.168.2.155", port=9999):
+def start(host="192.168.2.46", port=9999):
     """
     Function for starting TCP server
 
