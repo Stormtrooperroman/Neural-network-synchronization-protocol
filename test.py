@@ -82,5 +82,7 @@ else:
 
 mpl.plot(sync_history)
 mpl.plot(eve_sync_history)
-mpl.legend(["Синхронизация Алисы и Боба", "Синхронизация Алисы и Евы"])
+mpl.xlabel("Номер итерации")
+mpl.ylabel("Процент синхронизации")
+mpl.legend(["Сервер и Клиент", "Клиент и Атакующий"])
 mpl.show()

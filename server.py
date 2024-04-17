@@ -1,3 +1,4 @@
+import numpy as np
 import socketserver
 from hashlib import sha256
 from model import TPM
@@ -13,6 +14,14 @@ max_value = 6
 update_rules = ["hebbian", "anti_hebbian", "random_walk"]
 
 
+def random_input():
+    """
+    Function for generate input arrays.
+    """
+
+    return np.random.randint(-max_value, max_value+1, [hidden_layer, input_layer])
+
+
 class TCPHandler(socketserver.BaseRequestHandler):
     """
         Class for TCP server for neural network synchronization.
@@ -20,7 +29,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         r = remote.fromsocket(self.request)
         input_data = r.recvline(keepends=False, timeout=2).decode("utf-8")
-        print(f"{self.client_address[0]} wrote:")
+        print(f"{self.client_address[0]}:{self.client_address[1]} connect:")
 
         if input_data.lower() == "start synchronization":
             r.sendline("ok".encode())
@@ -32,10 +41,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 sync = False
 
                 while not sync:
-                    input_val = pickle.loads(r.readline(keepends=False, timeout=2))
+                    input_val = random_input()
                     server_output = server_tpm(input_val)
-                    r.sendline(str(server_output).encode())
+                    r.sendline(pickle.dumps(input_val))
                     client_output = float(r.readline(keepends=False, timeout=2).decode("utf-8"))
+                    r.sendline(str(server_output).encode())
                     server_tpm.update(client_output, update_rule)
 
                     if server_output == client_output:
@@ -48,7 +58,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                             print("Machines have been synchronized.")
 
 
-def start(host="192.168.2.46", port=9999):
+def start(host="192.168.2.155", port=9999):
     """
     Function for starting TCP server
 

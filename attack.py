@@ -11,7 +11,7 @@ max_value = 6
 update_rules = ["hebbian", "anti_hebbian", "random_walk"]
 
 
-def synchronization(data):
+def simple_attack(data):
     update_rule = update_rules[update_rules.index(data[1].decode("utf-8").strip())]
     attack_tpm = TPM(input_layer, hidden_layer, max_value)
     i = 2
@@ -39,7 +39,8 @@ def synchronization(data):
         i += 1
 
 
-def simple_attack(pkt):
+def collect_data(pkt):
+    global all_data
     if Raw in pkt:
         data = pkt[Raw].load
         str_data = ""
@@ -53,13 +54,12 @@ def simple_attack(pkt):
             all_data[dst] = []
 
         elif str_data == "finish synchronization":
-            print("HAHAHA")
             if src in all_data:
                 all_data[src].append(data)
-                synchronization(all_data[src])
+                simple_attack(all_data[src])
             elif dst in all_data:
                 all_data[dst].append(data)
-                synchronization(all_data[dst])
+                simple_attack(all_data[dst])
         elif src in all_data:
             all_data[src].append(data)
         elif dst in all_data:
@@ -67,4 +67,4 @@ def simple_attack(pkt):
 
 
 if __name__ == '__main__':
-    t = sniff(filter="port 9999", iface='\\Device\\NPF_Loopback', prn=simple_attack)
+    t = sniff(filter="port 9999", iface='\\Device\\NPF_Loopback', prn=collect_data)
